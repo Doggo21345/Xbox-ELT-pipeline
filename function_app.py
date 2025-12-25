@@ -10,7 +10,7 @@ import os
 
 app = func.FunctionApp()
 
-@app.timer_trigger(schedule="0 */5 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False) 
+@app.timer_trigger(schedule="0 0 0 1/14 * *", arg_name="myTimer", run_on_startup=False, use_monitor=False) 
 def Xbox_Time_Trigger_GP_MS(myTimer: func.TimerRequest) -> None:
     if myTimer.past_due:
         logging.info('The timer is past due!')
@@ -89,6 +89,20 @@ def Xbox_Time_Trigger_GP_MS(myTimer: func.TimerRequest) -> None:
     # 4. SAVE TO AZURE BLOB STORAGE
     if all_tidy_results:
         save_to_azure_blob(all_tidy_results)
+
+def save_to_azure_blob(results):
+    # AzureWebJobsStorage is the default env var for the linked storage account
+    connect_str = os.getenv('AzureWebJobsStorage')
+    blob_service_client = BlobServiceClient.from_connection_string(connect_str)
+    
+    # Ensure the container name matches what you create in the portal
+    container_name = "xbox-data"
+    filename = f"scrapes/xbox_data_{datetime.now().strftime('%Y%m%d_%H%M')}.json"
+    
+    blob_client = blob_service_client.get_blob_client(container=container_name, blob=filename)
+    blob_client.upload_blob(json.dumps(results, indent=2), overwrite=True)
+    logging.info(f"Successfully uploaded {filename} to Azure!")
+
 
 def save_to_azure_blob(results):
     # AzureWebJobsStorage is the default env var for the linked storage account
