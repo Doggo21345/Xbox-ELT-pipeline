@@ -92,7 +92,7 @@ def Xbox_Time_Trigger_GP_MS(myTimer: func.TimerRequest) -> None:
 
 def save_to_azure_blob(results):
     # AzureWebJobsStorage is the default env var for the linked storage account
-    connect_str = os.getenv('AzureWebJobsStorage') 
+    connect_str = os.getenv('AzureWebJobsStorage:') 
     blob_service_client = BlobServiceClient.from_connection_string(connect_str)
     
     # Ensure the container name matches what you create in the portal
