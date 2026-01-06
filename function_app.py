@@ -17,10 +17,11 @@ def Xbox_Time_Trigger_GP_MS(myTimer: func.TimerRequest) -> None:
 
     logging.info('Starting Xbox Store Scrape...')
 
-    # 1. LOAD YOUR CLEANED IDs
-    # Ensure this CSV is in your 'scraper-service' folder
+    
     try:
-        df = pd.read_csv('xbox_final_cleaned_results.csv')
+        script_dir = os.path.dirname(__file__)
+        csv_path = os.path.join(script_dir, 'xbox_final_cleaned_results.csv')
+        df = pd.read_csv(csv_path)
         product_ids = df['ProductID'].dropna().unique().tolist()
     except Exception as e:
         logging.error(f"Failed to read CSV: {e}")
@@ -92,7 +93,7 @@ def Xbox_Time_Trigger_GP_MS(myTimer: func.TimerRequest) -> None:
 
 def save_to_azure_blob(results):
     # AzureWebJobsStorage is the default env var for the linked storage account
-    connect_str = os.getenv('AzureWebJobsStorage')
+    connect_str = os.getenv("AzureWebJobsStorage")
     blob_service_client = BlobServiceClient.from_connection_string(connect_str)
     
     # Ensure the container name matches what you create in the portal
@@ -102,17 +103,29 @@ def save_to_azure_blob(results):
     blob_client = blob_service_client.get_blob_client(container=container_name, blob=filename)
     blob_client.upload_blob(json.dumps(results, indent=2), overwrite=True)
     logging.info(f"Successfully uploaded {filename} to Azure!")
+    trigger_databricks_job()
 
+def trigger_databricks_job():
+    # 1. Configuration
+    # Find your Instance URL and Job ID in the Databricks portal
+    workspace_url = "https://adb-7405614142677086.6.azuredatabricks.net" 
+    job_id = "771890677750776" # Your 'Xbox_Telemetry_Processing' Job ID
+    
+    # Generate a 'Personal Access Token' in Databricks User Settings
+    token = "dapi31e174d54e8cb29aea1dd9459b657537-2" 
 
-def save_to_azure_blob(results):
-    # AzureWebJobsStorage is the default env var for the linked storage account
-    connect_str = os.getenv('AzureWebJobsStorage')
-    blob_service_client = BlobServiceClient.from_connection_string(connect_str)
+    # 2. Build the Request
+    endpoint = f"{workspace_url}/api/2.1/jobs/run-now"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+    payload = {"job_id": job_id}
+
+    # 3. Execute
+    response = requests.post(endpoint, headers=headers, json=payload)
     
-    # Ensure the container name matches what you create in the portal
-    container_name = "xbox-data"
-    filename = f"scrapes/xbox_data_{datetime.now().strftime('%Y%m%d_%H%M')}.json"
-    
-    blob_client = blob_service_client.get_blob_client(container=container_name, blob=filename)
-    blob_client.upload_blob(json.dumps(results, indent=2), overwrite=True)
-    logging.info(f"Successfully uploaded {filename} to Azure!")
+    if response.status_code == 200:
+        logging.info(f"Databricks Job {job_id} triggered successfully!")
+    else:
+        logging.error(f"Failed to trigger Databricks: {response.text}")
