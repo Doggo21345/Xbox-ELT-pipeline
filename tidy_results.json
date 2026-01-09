@@ -1,0 +1,188 @@
+[
+    {
+        "product_id": "9N7271QN4SGB",
+        "title": "Mortal Kombat\u2122 1",
+        "publisher": "Warner Bros. Games",
+        "developer": "NetherRealm Studios ",
+        "release_date": "2023-09-19T04:00:00.0000000Z",
+        "short_description": "Discover a reborn Mortal Kombat\u2122 Universe created by the Fire God Liu Kang. Mortal Kombat\u2122 1 ushers in a new era of the iconic franchise with a new fighting system, game modes, and fatalities!",
+        "rating_all_time": {
+            "AggregateTimeSpan": "AllTime",
+            "AverageRating": 3.4,
+            "PlayCount": 0,
+            "RatingCount": 7769,
+            "RentalCount": "0",
+            "TrialCount": "0",
+            "PurchaseCount": "0"
+        },
+        "rating_7_days": {
+            "AggregateTimeSpan": "7Days",
+            "AverageRating": 2.5,
+            "PlayCount": 0,
+            "RatingCount": 106,
+            "RentalCount": "0",
+            "TrialCount": "0",
+            "PurchaseCount": "0"
+        },
+        "rating_30_days": {
+            "AggregateTimeSpan": "30Days",
+            "AverageRating": 2.5,
+            "PlayCount": 0,
+            "RatingCount": 824,
+            "RentalCount": "0",
+            "TrialCount": "0",
+            "PurchaseCount": "0"
+        },
+        "bundle_count": 0,
+        "is_xpa": null,
+        "platforms": [],
+        "asset_count": 12,
+        "has_gamepass_remediation": true,
+        "category": "Fighting",
+        "esrb_descriptors": [
+            "BloGor",
+            "StrLan",
+            "IntVio"
+        ],
+        "prices": [
+            {
+                "list_price": 49.99,
+                "msrp": 49.99,
+                "start": "2025-12-10T20:00:00.0000000Z",
+                "end": "2026-12-16T09:59:59.0000000Z"
+            },
+            {
+                "list_price": 0.0,
+                "msrp": 0.0,
+                "start": "2025-12-10T20:00:00.0000000Z",
+                "end": "2026-12-16T09:59:59.0000000Z"
+            },
+            {
+                "list_price": 0.0,
+                "msrp": 0.0,
+                "start": "2025-12-10T20:00:00.0000000Z",
+                "end": "2026-12-16T09:59:59.0000000Z"
+            },
+            {
+                "list_price": 0.0,
+                "msrp": 0.0,
+                "start": "2025-12-10T20:00:00.0000000Z",
+                "end": "2026-12-16T09:59:59.0000000Z"
+            },
+            {
+                "list_price": 49.99,
+                "msrp": 49.99,
+                "start": "2025-12-10T20:00:00.0000000Z",
+                "end": "2026-12-16T09:59:59.0000000Z"
+            },
+            {
+                "list_price": 0.0,
+                "msrp": 0.0,
+                "start": "2025-12-10T20:00:00.0000000Z",
+                "end": "2026-12-16T10:00:00.0000000Z"
+            },
+            {
+                "list_price": 0.0,
+                "msrp": 0.0,
+                "start": "2025-12-10T20:00:00.0000000Z",
+                "end": "2026-12-16T10:00:00.0000000Z"
+            },
+            {
+                "list_price": 0.0,
+                "msrp": 0.0,
+                "start": "2025-12-10T20:00:00.0000000Z",
+                "end": "2026-12-16T10:00:00.0000000Z"
+            },
+            {
+                "list_price": 0.0,
+                "msrp": 0.0,
+                "start": "2025-12-10T20:00:00.0000000Z",
+                "end": "2026-12-16T10:00:00.0000000Z"
+            },
+            {
+                "list_price": 0.0,
+                "msrp": 0.0,
+                "start": "2025-12-10T20:00:00.0000000Z",
+                "end": "2026-12-16T10:00:00.0000000Z"
+            },
+            {
+                "list_price": 0.0,
+                "msrp": 0.0,
+                "start": "2025-12-10T20:00:00.0000000Z",
+                "end": "2026-12-16T10:00:00.0000000Z"
+            },
+            {
+                "list_price": 0.0,
+                "msrp": 0.0,
+                "start": "2025-12-10T20:00:00.0000000Z",
+                "end": "2026-12-16T10:00:00.0000000Z"
+            },
+            {
+                "list_price": 0.0,
+                "msrp": 0.0,
+                "start": "2025-12-10T20:00:00.0000000Z",
+                "end": "2026-12-16T10:00:00.0000000Z"
+            },
+            {
+                "list_price": 0.0,
+                "msrp": 0.0,
+                "start": "2025-12-10T20:00:00.0000000Z",
+                "end": "2026-12-16T10:00:00.0000000Z"
+            },
+            {
+                "list_price": 0.0,
+                "msrp": 0.0,
+                "start": "2025-12-10T20:00:00.0000000Z",
+                "end": "2026-12-16T10:00:00.0000000Z"
+            },
+            {
+                "list_price": 0.0,
+                "msrp": 0.0,
+                "start": "2025-12-10T20:00:00.0000000Z",
+                "end": "2026-12-16T09:59:59.0000000Z"
+            },
+            {
+                "list_price": 0.0,
+                "msrp": 0.0,
+                "start": "2025-12-10T20:00:00.0000000Z",
+                "end": "2026-12-16T09:59:59.0000000Z"
+            },
+            {
+                "list_price": 0.0,
+                "msrp": 0.0,
+                "start": "2025-12-10T20:00:00.0000000Z",
+                "end": "2026-12-16T09:59:59.0000000Z"
+            },
+            {
+                "list_price": 0.0,
+                "msrp": 0.0,
+                "start": "2025-12-10T20:00:00.0000000Z",
+                "end": "2026-12-16T10:00:00.0000000Z"
+            },
+            {
+                "list_price": 0.0,
+                "msrp": 0.0,
+                "start": "2023-05-19T17:00:00.0000000Z",
+                "end": "9998-12-30T00:00:00.0000000Z"
+            },
+            {
+                "list_price": 0.0,
+                "msrp": 0.0,
+                "start": "2023-05-19T17:00:00.0000000Z",
+                "end": "9998-12-30T00:00:00.0000000Z"
+            },
+            {
+                "list_price": 0.0,
+                "msrp": 0.0,
+                "start": "2024-03-11T07:00:00.0000000Z",
+                "end": "9998-12-30T00:00:00.0000000Z"
+            },
+            {
+                "list_price": 0.0,
+                "msrp": 0.0,
+                "start": "2023-05-19T17:00:00.0000000Z",
+                "end": "9998-12-30T00:00:00.0000000Z"
+            }
+        ]
+    }
+]
