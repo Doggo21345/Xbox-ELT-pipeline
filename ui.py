@@ -75,7 +75,7 @@ if selected == "Download Center":
     st.info("💡 Note: This data includes statistical 'Lift' calculations and T-Test metrics generated in Databricks.")
 
 if selected == "Proof of Concept":
-    df = pd.read_csv('gamepass_impact_report.csv')
+    df = pd.read_csv('csvs/gamepass_impact_report.csv')
     st.title('Xbox Game Pass  _Analysis_ is :blue[MK1 (Mortal Kombat 1)] vs :red[SF6 (Street Fighter 6)]')
     st.write('This application analyzes the impact of Xbox Game Pass on game performance, focusing on Mortal Kombat 1 and Street Fighter 6. Both games were similar in terms of rating (at least by xbox players all time) when they were released, but MK1 was added to Game Pass a week ago, while SF6 was not. This analysis explores how Game Pass inclusion affects various performance metrics such as player count, engagement, and revenue.')
     st.dataframe(df)
@@ -259,7 +259,7 @@ $$
     }).round(2)
     """, language="python")
     st.write("From this we are able to come out with a similar data frame as the in the data frame above")
-    genre_comaprsion = pd.read_csv("Genre_gamepass_comparison_fixed.csv")
+    genre_comaprsion = pd.read_csv("csvs/Genre_gamepass_comparison_fixed.csv")
     st.dataframe(genre_comaprsion)
     st.write("The major differnece between these data frames is chiefly that one is seperated into groups by whether they are included into game pass vs the other one only contains the Genre perfomance But from this we can then calculate a comaprsion of the ")
     st.code("""
@@ -406,7 +406,7 @@ $$
     # --- DATA LOADING (Assuming your 'merged' dataframe is ready) ---
     # Note: In a real app, you'd do: df = pd.read_csv("xbox_final_data.csv")
     # For this example, I'll use your calculated logic.
-    merged = pd.read_csv("xbox_final_data.csv")
+    merged = pd.read_csv("csvs/xbox_final_data.csv")
     gp_genres = merged[merged['has_gamepass_remediation'] == True]
     total_gp_genres = len(gp_genres)
 
@@ -812,103 +812,104 @@ elif(selected == "Overview"):
     st.write("However I think that this is still a great thing to look at to see how sucessfull various games and genres have been sucessfull on gamepass! I found myself parcualyr exicted looking at the data at my fave publisher of all time ")
     st.markdown("I think that it would benfit you to look at the genre analysis first before going onto any of the other sections just because that ha the most amount of my methodlogy on what I decided to inlcue on this project ")
     st.write("If you are not a publisher (whihc I imagine most of you are not then this might be some fun insights/ ways for to use the app )")
-    import streamlit as st
+    st.title("🎯 The Vision: How to Navigate this Intelligence")
+    # --- Custom Styling for this section ---
+    st.markdown("""
+        <style>
+        .mission-box {
+            background-color: #1a1c23;
+            padding: 25px;
+            border-radius: 15px;
+            border-right: 5px solid #107C10;
+            margin-bottom: 25px;
+        }
+        .persona-card {
+            background-color: #262730;
+            padding: 20px;
+            border-radius: 10px;
+            height: 100%;
+            border-bottom: 3px solid #107C10;
+        }
+        .highlight-text {
+            color: #107C10;
+            font-weight: bold;
+        }
+        </style>
+        """, unsafe_allow_html=True)
 
-# --- Page Setup (Assuming this is inside your "Overview" or "Thoughts" section) ---
-st.title("🎯 The Vision: How to Navigate this Intelligence")
-
-# --- Custom Styling for this section ---
-st.markdown("""
-    <style>
-    .mission-box {
-        background-color: #1a1c23;
-        padding: 25px;
-        border-radius: 15px;
-        border-right: 5px solid #107C10;
-        margin-bottom: 25px;
-    }
-    .persona-card {
-        background-color: #262730;
-        padding: 20px;
-        border-radius: 10px;
-        height: 100%;
-        border-bottom: 3px solid #107C10;
-    }
-    .highlight-text {
-        color: #107C10;
-        font-weight: bold;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-# --- The "Why" / Mission Statement ---
-st.markdown(f"""
-    <div class="mission-box">
-        <h3>🚀 The Mission</h3>
-        While this dashboard was architected as a <b>Strategic Intelligence tool for Publishers</b>, 
-        its true purpose is to decode the 'Black Box' of subscription gaming. 
-        Whether you are a Lead Analyst at a major studio or a weekend gamer, 
-        this data tells the story of how our playing habits are shaping the future of the industry.
-    </div>
-    """, unsafe_allow_html=True)
-
-# --- Persona Sections ---
-st.markdown("### 👥 Why should you care?")
-col1, col2 = st.columns(2)
-
-with col1:
+    # --- The "Why" / Mission Statement ---
     st.markdown(f"""
-    <div class="persona-card">
-        <h4>💼 For the Publisher / Intern</h4>
-        <p>This is your <b>Decision Support System</b>. Use the <i>Genre Analysis</i> and <i>Publisher Intel</i> 
-        tabs to justify multi-million dollar renewal contracts. 
-        <br><br>
-        <span class="highlight-text">Pro-Tip:</span> Start with <b>Genre Analysis</b> to understand the methodology 
-        before diving into specific company 'Lifts'.</p>
-    </div>
-    """, unsafe_allow_html=True)
+        <div class="mission-box">
+            <h3>🚀 The Mission</h3>
+            While this dashboard was architected as a <b>Strategic Intelligence tool for Publishers</b>, 
+            its true purpose is to decode the 'Black Box' of subscription gaming. 
+            Whether you are a Lead Analyst at a major studio or a weekend gamer, 
+            this data tells the story of how our playing habits are shaping the future of the industry.
+        </div>
+        """, unsafe_allow_html=True)
 
-with col2:
-    st.markdown(f"""
-    <div class="persona-card">
-        <h4>🎮 For the Curious Gamer</h4>
-        <p>Ever wonder why a 'free' game suddenly gets a massive DLC update or why a certain genre seems 
-        to dominate the home screen? 
-        <br><br>
-        This analysis turns you into a <b>Market Scout</b>. You can find 'Sleeper Hits'—games that have low 
-        marketing but massive <b>Quality Retention</b>—and see which publishers are truly 
-        investing in player satisfaction over just 'hype'.</p>
-    </div>
-    """, unsafe_allow_html=True)
+    # --- Persona Sections ---
+    st.markdown("### 👥 Why should you care?")
+    col1, col2 = st.columns(2)
 
-st.divider()
+    with col1:
+        st.markdown(f"""
+        <div class="persona-card">
+            <h4>💼 For the Publisher / Intern</h4>
+            <p>This is your <b>Decision Support System</b>. Use the <i>Genre Analysis</i> and <i>Publisher Intel</i> 
+            tabs to justify multi-million dollar renewal contracts. 
+            <br><br>
+            <span class="highlight-text">Pro-Tip:</span> Start with <b>Genre Analysis</b> to understand the methodology 
+            before diving into specific company 'Lifts'.</p>
+        </div>
+        """, unsafe_allow_html=True)
 
-# --- The "Fun" Element for General Users ---
-st.markdown("### 🔍 Beyond the Boardroom: The 'Regular Person' Perspective")
-st.write("""
-If you aren't looking at this through the lens of a corporate balance sheet, here is how you can have some fun with the 'Nexus' Dashboard:
-""")
+    with col2:
+        st.markdown(f"""
+        <div class="persona-card">
+            <h4>🎮 For the Curious Gamer</h4>
+            <p>Ever wonder why a 'free' game suddenly gets a massive DLC update or why a certain genre seems 
+            to dominate the home screen? 
+            <br><br>
+            This analysis turns you into a <b>Market Scout</b>. You can find 'Sleeper Hits'—games that have low 
+            marketing but massive <b>Quality Retention</b>—and see which publishers are truly 
+            investing in player satisfaction over just 'hype'.</p>
+        </div>
+        """, unsafe_allow_html=True)
 
-# Three small columns for "Fun" use cases
-f1, f2, f3 = st.columns(3)
+    st.divider()
 
-with f1:
-    st.info("**Find the 'Sleeper Hits'**")
-    st.caption("Filter the Data Explorer for high 'Quality' but low 'All-Time Ratings'. These are the hidden gems the community loves but the world hasn't discovered yet.")
+    # --- The "Fun" Element for General Users ---
+    st.markdown("### 🔍 Beyond the Boardroom: The 'Regular Person' Perspective")
+    st.write("""
+    If you aren't looking at this through the lens of a corporate balance sheet, here is how you can have some fun with the 'Nexus' Dashboard:
+    """)
 
-with f2:
-    st.success("**The 'Moneyball' of Gaming**")
-    st.caption("Look at your favorite publisher (like EA or Activision). Are they 'winning' the Game Pass era, or are they clinging to a retail-only past? The 'Momentum' score tells all.")
+    # Three small columns for "Fun" use cases
+    f1, f2, f3 = st.columns(3)
 
-with f3:
-    st.warning("**Predict the Future**")
-    st.caption("Check the 'Decay Curves' in Genre Analysis. If a genre has high momentum right now, expect Xbox to sign more titles in that category in the next 6 months.")
+    with f1:
+        st.info("**Find the 'Sleeper Hits'**")
+        st.caption("Filter the Data Explorer for high 'Quality' but low 'All-Time Ratings'. These are the hidden gems the community loves but the world hasn't discovered yet.")
 
-# Final Navigation Suggestion
-st.info("💡 **Next Step:** Head over to the **Genre Analysis** tab. It contains the core methodology and the statistical 'Lift' formulas that power every other insight in this app.")
+    with f2:
+        st.success("**The 'Moneyball' of Gaming**")
+        st.caption("Look at your favorite publisher (like EA or Activision). Are they 'winning' the Game Pass era, or are they clinging to a retail-only past? The 'Momentum' score tells all.")
+
+    with f3:
+        st.warning("**Predict the Future**")
+        st.caption("Check the 'Decay Curves' in Genre Analysis. If a genre has high momentum right now, expect Xbox to sign more titles in that category in the next 6 months.")
+
+    # Final Navigation Suggestion
+    st.info("💡 **Next Step:** Head over to the **Genre Analysis** tab. It contains the core methodology and the statistical 'Lift' formulas that power every other insight in this app.")
+            
         
     
     
+
+
+
     
+
 
 

@@ -7,6 +7,7 @@ from datetime import datetime
 import time
 from azure.storage.blob import BlobServiceClient
 import os
+import streamlit as st
 
 app = func.FunctionApp()
 
@@ -17,7 +18,6 @@ def Xbox_Time_Trigger_GP_MS(myTimer: func.TimerRequest) -> None:
 
     logging.info('Starting Xbox Store Scrape...')
 
-    
     try:
         script_dir = os.path.dirname(__file__)
         csv_path = os.path.join(script_dir, 'xbox_final_cleaned_results.csv')
@@ -28,8 +28,7 @@ def Xbox_Time_Trigger_GP_MS(myTimer: func.TimerRequest) -> None:
         return
 
     batch_size = 20
-    all_tidy_results = []
-    
+    all_tidy_results = [] 
     url = "https://displaycatalog.mp.microsoft.com/v7.0/products"
 
     for i in range(0, len(product_ids), batch_size):
@@ -38,102 +37,100 @@ def Xbox_Time_Trigger_GP_MS(myTimer: func.TimerRequest) -> None:
         logging.info(f"Scraping batch {i//batch_size + 1}...")
         
         params = {"bigIds": batch_string, "market": "US", "languages": "en-US"}
-    try:
+        
+        try:
+            r = requests.get(url, params=params, timeout=30)
+            if r.status_code == 200:
+                data = r.json()
+                
+                for p in data.get("Products", []):
+                    # Helper variables
+                    localized_props = p.get("LocalizedProperties", [])
+                    lp = localized_props[0] if localized_props else {}
+                    
+                    market_props = p.get("MarketProperties", [])
+                    mp = market_props[0] if market_props else {}
+                    
+                    prop = p.get("Properties", {})
+                    usage = mp.get("UsageData", [])
+                    ratings = mp.get("ContentRatings", [])
 
-        r = requests.get(url, params=params, timeout=30)
-        if r.status_code == 200:
-            data = r.json()
-            all_tidy_results = []
-            # Corrected: Iterate through every product in the API response
-            for p in data.get("Products", []):
-                lp = p.get("LocalizedProperties", [{}])[0]
-                mp = p.get("MarketProperties", [{}])[0]
-                prop = p.get("Properties", {})
-                usage = mp.get("UsageData", [])
-                ratings = mp.get("ContentRatings", [])
-
-                tidy = {
-                    "product_id": p.get("ProductId"),
-                    "title": lp.get("ProductTitle"),
-                    "publisher": lp.get("PublisherName"),
-                    "developer": lp.get("DeveloperName"),
-                    "release_date": mp.get("OriginalReleaseDate"),
-                    "short_description": lp.get("ShortDescription"),
-                    "rating_all_time": (mp.get("UsageData") or [])[-1] if mp.get("UsageData") else None,
-                    "rating_7_days": (mp.get("UsageData") or [])[-3] if mp.get("UsageData") and len(mp.get("UsageData")) > 1 else None,
-                    "rating_30_days": (mp.get("UsageData") or [])[-2] if mp.get("UsageData") and len(mp.get("UsageData")) > 2 else None,
-                    "bundle_count": len(p.get("Properties", {}).get("BundledSkus", [])),
-                    "is_xpa": p.get("Properties", {}).get("XboxXPA", False),
-                    "platforms": p.get("Properties", {}).get("SupportedPlatforms", []),
-                    "asset_count": len(lp.get("Images", [])) + len(lp.get("Videos", [])) + len(lp.get("CMSVideos", [])),
-                    "has_gamepass_remediation": any(
-                        "Game Pass" in rem.get("Description", "") 
-                        for lp_item in p.get("LocalizedProperties", [])
-                        for rem in lp_item.get("EligibilityProperties", {}).get("Remediations", [])
-                    ),
-                    "category": prop.get("Category", []),
-                    "esrb_descriptors": [
+                    tidy = {
+                        "product_id": p.get("ProductId"),
+                        "title": lp.get("ProductTitle"),
+                        "publisher": lp.get("PublisherName"),
+                        "developer": lp.get("DeveloperName"),
+                        "release_date": mp.get("OriginalReleaseDate"),
+                        "short_description": lp.get("ShortDescription"),
+                        "rating_alltime": usage[-1] if usage else None,
+                        "rating_7_days": usage[-3] if len(usage) > 2 else None,
+                        "rating_30_days": usage[-2] if len(usage) > 1 else None,
+                        "bundle_count": len(prop.get("BundledSkus", [])),
+                        "is_xpa": prop.get("XboxXPA", False),
+                        "asset_count": len(lp.get("Images", [])) + len(lp.get("Videos", [])) + len(lp.get("CMSVideos", [])),
+                        "category": prop.get("Category", "unknown"),
+                        "esrb": next(
+                            (r.get("RatingId", "").split(":")[-1] 
+                             for r in ratings if r.get("RatingSystem") == "ESRB"), 
+                            None
+                        ),
+                        "esrb_descriptors": [
                         desc.split(":")[-1] 
                         for r in ratings if r.get("RatingSystem") == "ESRB"
                         for desc in r.get("RatingDescriptors", [])
                           ],
-                    "prices": [
-                        {
-                            "list_price": a.get("OrderManagementData", {}).get("Price", {}).get("ListPrice"),
-                            "msrp": a.get("OrderManagementData", {}).get("Price", {}).get("MSRP"),
-                            "start": a.get("Conditions", {}).get("StartDate"),
-                            "end": a.get("Conditions", {}).get("EndDate"),
-                        }
-                        for sku in p.get("DisplaySkuAvailabilities", [])
-                        for a in sku.get("Availabilities", [])
-                        if a.get("OrderManagementData", {}).get("Price")
-                    ]
-                }
-                all_tidy_results.append(tidy)
-
-        
-            # Rate limit safety
-            time.sleep(2) 
+                        "has_gamepass_remediation": any(
+                            "Game Pass" in rem.get("Description", "") 
+                            for lp_item in localized_props
+                            for rem in lp_item.get("EligibilityProperties", {}).get("Remediations", [])
+                        ),
+                        "prices": [
+                            {
+                                "list_price": a.get("OrderManagementData", {}).get("Price", {}).get("ListPrice"),
+                                "msrp": a.get("OrderManagementData", {}).get("Price", {}).get("MSRP"),
+                                "start": a.get("Conditions", {}).get("StartDate"),
+                                "end": a.get("Conditions", {}).get("EndDate"),
+                            }
+                            for sku in p.get("DisplaySkuAvailabilities", [])
+                            for a in sku.get("Availabilities", [])
+                            if a.get("OrderManagementData", {}).get("Price")
+                        ]
+                    }
+                    all_tidy_results.append(tidy)
             
-    except Exception as e:
+            time.sleep(1) # Rate limit safety
+            
+        except Exception as e:
             logging.error(f"Error in batch starting at index {i}: {e}")
 
-    # 4. SAVE TO AZURE BLOB STORAGE
     if all_tidy_results:
         save_to_azure_blob(all_tidy_results)
 
 def save_to_azure_blob(results):
-    # AzureWebJobsStorage is the default env var for the linked storage account
     connect_str = os.getenv("AzureWebJobsStorage")
     blob_service_client = BlobServiceClient.from_connection_string(connect_str)
     
-    # Ensure the container name matches what you create in the portal
     container_name = "xbox-data"
     filename = f"scrapes/xbox_data_{datetime.now().strftime('%Y%m%d_%H%M')}.json"
     
     blob_client = blob_service_client.get_blob_client(container=container_name, blob=filename)
     blob_client.upload_blob(json.dumps(results, indent=2), overwrite=True)
     logging.info(f"Successfully uploaded {filename} to Azure!")
+    
+    # RE-ADDED: Call Databricks after upload
     trigger_databricks_job()
+    
 
 def trigger_databricks_job():
-    # 1. Configuration
-    # Find your Instance URL and Job ID in the Databricks portal
-    workspace_url = "https://adb-7405614142677086.6.azuredatabricks.net" 
-    job_id = "771890677750776" # Your 'Xbox_Telemetry_Processing' Job ID
-    
-    # Generate a 'Personal Access Token' in Databricks User Settings
-    token = "dapi31e174d54e8cb29aea1dd9459b657537-2" 
+    creds = st.secrets["connections"]["databricks"]
+    workspace_url = f"https://{creds['server_hostname']}"
+    token = creds['access_token']
+    job_id = creds['job_id'] # You can also put this in secrets.toml
 
-    # 2. Build the Request
-    endpoint = f"{workspace_url}/api/2.1/jobs/run-now"
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json"
-    }
+    endpoint = f"{workspace_url}/api/2.2/jobs/run-now"
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     payload = {"job_id": job_id}
 
-    # 3. Execute
     response = requests.post(endpoint, headers=headers, json=payload)
     
     if response.status_code == 200:

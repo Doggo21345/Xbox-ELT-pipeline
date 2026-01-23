@@ -1,12 +1,17 @@
+# Data Processing & Analysis
 pandas
 numpy
 scipy
+
+# Visualization
 matplotlib
 seaborn
 plotly
+
+# Web Interface
 streamlit
 streamlit-option-menu
-plotly.express 
-pandas 
-databricks 
-databricks.sdk.core 
+
+# Cloud & Infrastructure
+databricks-sdk
+azure-functions
