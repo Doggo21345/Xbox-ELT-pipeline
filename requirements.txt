@@ -17,6 +17,7 @@ streamlit-option-menu
 
 # Cloud & Infrastructure
 databricks-sdk
+databricks-sql-connector
 azure-functions
 azure-storage-blob
 requests
