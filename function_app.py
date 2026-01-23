@@ -122,11 +122,11 @@ def save_to_azure_blob(results):
     
 
 def trigger_databricks_job():
-    creds = st.secrets["connections"]["databricks"]
-    workspace_url = f"https://{creds['server_hostname']}"
-    token = creds['access_token']
-    job_id = creds['job_id'] # You can also put this in secrets.toml
+    server_hostname = os.environ.get("DATABRICKS_HOSTNAME")
+    token = os.environ.get("DATABRICKS_TOKEN")
+    job_id = os.environ.get("DATABRICKS_JOB_ID")
 
+    workspace_url = f"https://{server_hostname}"
     endpoint = f"{workspace_url}/api/2.2/jobs/run-now"
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     payload = {"job_id": job_id}
