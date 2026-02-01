@@ -1,0 +1,15 @@
+artifact_path: /Users/aryapanda/Xbox ELT pipeline/ML/Notebooks/mlruns/3/models/m-fc88a3b022774b3d871fd72b70367813/artifacts
+flavors:
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.8.0
+    skops_trusted_types: null
+mlflow_version: 3.9.0
+model_id: m-fc88a3b022774b3d871fd72b70367813
+model_size_bytes: 301570
+model_uuid: m-fc88a3b022774b3d871fd72b70367813
+prompts: null
+run_id: ad44930b95c94424bb5f9ead78ad8ced
+utc_time_created: '2026-01-31 22:12:20.947892'
