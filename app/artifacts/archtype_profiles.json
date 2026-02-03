@@ -1,0 +1,17 @@
+{
+  "-1": {
+    "persona_name": "Unique Disruptor",
+    "summary": "Games that don't fit standard patterns. Often highly innovative or experimental indie titles.",
+    "strategy": "High-risk, high-reward. Monitor community sentiment closely."
+  },
+  "3": {
+    "persona_name": "Xbox Heritage Vanguard",
+    "summary": "Large-scale, high-budget titles with long-term player retention (e.g., Halo, Forza).",
+    "strategy": "Focus on DLC, seasonal updates, and community events."
+  },
+  "6": {
+    "persona_name": "Indie Discovery Engine",
+    "summary": "Smaller, high-quality titles that drive massive Game Pass engagement for niche audiences.",
+    "strategy": "Highlight in curated 'Indie Spotlight' collections."
+  }
+}
