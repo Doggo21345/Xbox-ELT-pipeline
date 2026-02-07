@@ -161,13 +161,13 @@ def batch_predict(batch: BatchInput):
         results = []
         preds = predict(df, state["preprocessor"], state["umap"], state["clusterer"])
         for idx,row in preds.iterrows():
-            rec = preds.iloc[idx].to_dict()
-            label = int(rec["label"])
+            confidence = float(row["confidence"])
+            label = int(row["label"])
             profile = state["profiles"].get(str(label))
             results.append({
                 "profile": profile, 
                 "label": label,
-                "confidence": float(rec['confidence'])
+                "confidence": confidence
             })
         return{"results": results}
     except Exception as e:

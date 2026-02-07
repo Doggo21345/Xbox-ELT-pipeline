@@ -21,3 +21,13 @@ databricks-sql-connector
 azure-functions
 azure-storage-blob
 requests
+
+#API part
+fastapi
+uvicorn
+pydantic
+joblib
+scikit-learn
+hdbscan
+umap-learn
+category_encoders
