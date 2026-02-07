@@ -62,12 +62,37 @@ def predict(df, preprocessor=None, umap=None, clusterer=None):
     try:
         X_enc = preprocessor.transform(df)
         emb = umap.transform(X_enc)
-        labels, strengths = hdbscan.approximate_predict(clusterer, emb)
+
+        # Calculate Snapshot for your terminal
+        counts = pd.Series(clusterer.labels_).value_counts()
+        valid_counts = counts[counts.index != -1]
+        biggest_cluster = int(valid_counts.idxmax())
+        biggest_count = int(valid_counts.max())
+        print(f"--- Market Snapshot ---")
+        print(f"Largest Group: Cluster {biggest_cluster} ({biggest_count} games)")
         
+        # --- THE MISSING LOGIC ---
+        # 1. Use membership vectors to find the "Best Guess" (avoids -1)
+        membership_vecs = hdbscan.membership_vector(clusterer, emb)
+        best_label = np.argmax(membership_vecs, axis=1)
+        strength = np.max(membership_vecs, axis=1)
+
+        # 2. Return the results as a DataFrame
         return pd.DataFrame({
-            "label": labels.astype(int),
-            "confidence": strengths.astype(float)
+            "label": best_label.astype(int),
+            "confidence": strength.astype(float)
         }, index=df.index)
+
     except Exception as e:
         print(f"❌ Transformation Error: {e}")
         raise e
+    
+
+    # labels, strengths = hdbscan.approximate_predict(clusterer, emb)
+    # #     membership_vecs = hdbscan.membership_vector(clusterer,emb)
+    # #     best_label = np.argmax(membership_vecs, axis = 1)
+    # #     strength = np.max(membership_vecs, axis = 1)
+    # #     return pd.DataFrame({
+    # #         "label": labels.astype(int),
+    # #         "confidence": strengths.astype(float)
+    # #     }, index=df.index)
