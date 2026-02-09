@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 import pandas as pd
 from contextlib import asynccontextmanager
-from model_utils import load_models, load_profiles, predict
+from .model_utils import load_models, load_profiles, predict
 state = {}
 
 @asynccontextmanager
