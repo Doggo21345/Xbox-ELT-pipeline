@@ -6,6 +6,13 @@ from contextlib import asynccontextmanager
 from .model_utils import load_models, load_profiles, predict
 state = {}
 
+# ... inside your main execution ...
+best_reducer, best_clusterer = train_and_optimize(df_from_hive)
+
+# Save both steps of the pipeline so the UI can use them
+with open('app/models/xbox_model.pkl', 'wb') as f:
+    pickle.dump({'reducer': best_reducer, 'clusterer': best_clusterer}, f) 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # This runs ONCE when the server starts
