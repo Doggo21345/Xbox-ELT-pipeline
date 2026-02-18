@@ -4,29 +4,58 @@ from typing import List, Dict, Any, Optional
 import pandas as pd
 from contextlib import asynccontextmanager
 from .model_utils import load_models, load_profiles, predict
+from scripts.train import train_n_optimize
+from pickle import load, dump
+import toml
+import os 
+import databricks
+from sqlalchemy import create_engine
 state = {}
 
-# ... inside your main execution ...
-best_reducer, best_clusterer = train_and_optimize(df_from_hive)
 
-# Save both steps of the pipeline so the UI can use them
+secrets_path = os.path.join("..", "..", ".streamlit", "secrets.toml")
+secrets = toml.load(secrets_path)
+db_token = secrets["connections"]["databricks"]["access_token"]
+server_hostname = secrets["connections"]["databricks"]["server_hostname"]
+http_path = secrets["connections"]["databricks"]["http_path"]
+catalog_name = "hive_metastore" 
+schema_name = "default"
+
+connection_url = (
+    f"databricks://token:{db_token}@{server_hostname}?"
+    f"http_path={http_path}&catalog={catalog_name}&schema={schema_name}"
+)
+
+# 3. Create the engine
+engine = create_engine(connection_url)
+
+# 4. Pull your data into a Pandas DataFrame
+# Replace 'your_table_name' with the actual name of your Xbox dataset
+query = "SELECT * FROM xbox_analysis_data"
+final_df = pd.read_sql(query, engine)
+
+best_reducer, best_clusterer = train_n_optimize(final_df)
+
 with open('app/models/xbox_model.pkl', 'wb') as f:
-    pickle.dump({'reducer': best_reducer, 'clusterer': best_clusterer}, f) 
+    dump({'reducer': best_reducer, 'clusterer': best_clusterer}, f) 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # This runs ONCE when the server starts
-    preprocessor, umap, clusterer = load_models()
-    profiles = load_profiles()
-    state["preprocessor"] = preprocessor
-    state["umap"] = umap
-    state["clusterer"] = clusterer
-    state["profiles"] = profiles
-    print("🚀 Xbox Archetype Models Loaded and Ready")
-    yield
-    state.clear()
+    try: 
+        with open('app/models/xbox_model.pkl', 'rb') as f: 
+            artifacts = load(f)
+            # Fixed typo: 'reducer'
+            state["umap"] = artifacts['reducer'] 
+            state['clusterer'] = artifacts['clusterer']
+            print(f"🚀 Xbox Archetypes Loaded (Validation Score: {artifacts['score']:.2f})")
+    except FileNotFoundError:
+        print("⚠️ Warning: xbox_model.pkl not found. Predictions will fail.")
+    except Exception as e:
+        print(f"❌ Unexpected error loading model: {e}")
 
-app = FastAPI(title="Xbox Archetype API", lifespan=lifespan)
+    yield 
+    state.clear()
+    print("🧹 State cleared")
 
 class GameFeatures(BaseModel):
     publisher: str

@@ -1,12 +1,16 @@
 import os 
 import pandas as pd 
-import pickle 
+from pickle import dump,load
 from databricks import sql 
 from sklearn.metrics import silhouette_score
 from sklearn.model_selection import ParameterGrid
 import umap 
 import hdbscan
-def train_n_optimize():
+def train_n_optimize(df : pd.DataFrame):
+    if not isinstance(df, pd.DataFrame):
+        raise TypeError(f"Expected to recieve a pandas Data Frame but instead got {type(df).__name__}")
+    if (df.empty):
+            raise TypeError 
     param_grid = {
         'n_neighbors': [15,30],
         'min_dist':[0,.1],
@@ -25,7 +29,7 @@ def train_n_optimize():
             min_samples = params['min_dist'],
             gen_min_span_tree=True
         )
-        embedding = reducer.fit_transform(X_final)
+        embedding = reducer.fit_transform(df)
         labels = clusterer.fit_predict(embedding)
         mask = labels != -1 
         if mask.sum() > 1 and len(set(labels(mask))) > 1:
@@ -40,7 +44,14 @@ def train_n_optimize():
     best = max(results,key = lambda x:x['silhouette'])
     if best['silhouette'] < .60:
         raise ValueError(f"Model health check failed! Best score: {best['silhouette']}")
-        
-    return best['model'] # Returns tuple of (reducer, clusterer)
+    os.makedirs('app/models', exist_ok = True )
+    with open('app/models/xbox_model.pkl', 'wb') as f:
+         dump({
+            'reducer':best['model'][0],
+            'clusterer':best['model'][1],
+            'score': best['silhouette']
+         }, f)
+    print(f"✅ Success! Best Silhouette {best['silhouette']:.2f} saved to app/models/xbox_model.pkl")
+    return best['model']
 
 
