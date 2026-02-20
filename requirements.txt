@@ -2,9 +2,13 @@
 # Ref: aka.ms/functions-azure-monitor-python
 # azure-monitor-opentelemetry
 # Data Processing & Analysis
+sqlalchemy
+sqlalchemy-databricks
+databricks-sql-connector
 pandas
-numpy
-scipy
+umap-learn
+hdbscan
+toml
 
 # Visualization
 matplotlib
@@ -28,6 +32,4 @@ uvicorn
 pydantic
 joblib
 scikit-learn>=1.6.0
-hdbscan
-umap-learn
 category_encoders
