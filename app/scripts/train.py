@@ -107,8 +107,19 @@ if __name__ == "__main__":
     engine = create_engine(connection_url)
     query = text("SELECT * FROM xbox_analysis_data")
     print("Stage 5; DOWNLOADING DATA FROM HIVE", flush = True)
-    with engine.connect() as conn:
-        final_df = pd.read_sql(query, conn)
-
-    # Now this call works because the function is defined above
-    train_n_optimize(final_df)
+    try:
+        with engine.connect() as conn:
+            # We explicitly use the connection to execute the query
+            # and pass that result set to Pandas
+            final_df = pd.read_sql(query, conn)
+        
+        if final_df.empty:
+            print("⚠️ Warning: Downloaded DataFrame is empty!")
+        else:
+            print(f"✅ Data Downloaded: {len(final_df)} rows found.", flush=True)
+            # Trigger the training
+            train_n_optimize(final_df)
+            
+    except Exception as e:
+        print(f"❌ Database Error: {e}")
+        raise
