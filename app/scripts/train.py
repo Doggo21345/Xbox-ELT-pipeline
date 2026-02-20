@@ -5,7 +5,7 @@ from sklearn.metrics import silhouette_score
 from sklearn.model_selection import ParameterGrid
 import umap 
 import hdbscan
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 import toml
 
 def train_n_optimize(df: pd.DataFrame):
