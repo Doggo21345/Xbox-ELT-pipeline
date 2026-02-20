@@ -24,8 +24,9 @@ jobs:
       - name: Install Dependencies 
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest httpx  # These are just for testing, keep them here
+          # Use the flag here in the command, not in the requirements file
+          pip install --prefer-binary -r requirements.txt
+          pip install pytest httpx
       - name: Retrain Model from new Hive data
         run: |
           # 1. Ensure Python can find the 'app' module for imports
@@ -35,7 +36,7 @@ jobs:
           python -u "app/scripts/train.py"
         env:
           DB_TOKEN: ${{ secrets.DB_TOKEN }}
-          DB_SERVER_HOSTNAME: ${{ secrets.DB_SERVER_HOSTNAME }}
+          DB_SERVER_HOSTNAME: ${{ secrets.DB_SERVERHOSTNAME }}
           DB_HTTP_PATH: ${{ secrets.DB_HTTP_PATH }}
       - name: Unit Tests and Model tests 
         run: pytest app/tests/
