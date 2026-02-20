@@ -105,21 +105,23 @@ if __name__ == "__main__":
     )
 
     engine = create_engine(connection_url)
-    query = text("SELECT * FROM xbox_analysis_data")
+    sql_query = text("SELECT * FROM xbox_analysis_data")
     print("Stage 5; DOWNLOADING DATA FROM HIVE", flush = True)
     try:
+        # Option A: The most explicit SQLAlchemy -> Pandas handoff
         with engine.connect() as conn:
-            # We explicitly use the connection to execute the query
-            # and pass that result set to Pandas
-            final_df = pd.read_sql(query, conn)
+            # We wrap the string in text() here, but pass it to read_sql_query
+            final_df = pd.read_sql_query(sql=text(), con=conn)
         
         if final_df.empty:
-            print("⚠️ Warning: Downloaded DataFrame is empty!")
-        else:
-            print(f"✅ Data Downloaded: {len(final_df)} rows found.", flush=True)
-            # Trigger the training
-            train_n_optimize(final_df)
+            raise ValueError("The hive table 'xbox_analysis_data' returned no rows.")
+            
+        print(f"✅ Data Downloaded: {len(final_df)} rows found.", flush=True)
+        train_n_optimize(final_df)
             
     except Exception as e:
         print(f"❌ Database Error: {e}")
-        raise
+        # Option B: Fallback to a simpler string execution if text() is being rejected
+        print("🔄 Attempting fallback connection method...")
+        final_df = pd.read_sql(sql_query, engine)
+        train_n_optimize(final_df)
