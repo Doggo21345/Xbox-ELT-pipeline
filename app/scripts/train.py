@@ -105,7 +105,7 @@ if __name__ == "__main__":
     )
 
     engine = create_engine(connection_url)
-    query = "SELECT * FROM xbox_analysis_data"
+    query = text("SELECT * FROM xbox_analysis_data")
     print("Stage 5; DOWNLOADING DATA FROM HIVE", flush = True)
     with engine.connect() as conn:
         final_df = pd.read_sql(query, conn)
