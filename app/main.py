@@ -13,31 +13,6 @@ from sqlalchemy import create_engine
 state = {}
 
 
-secrets_path = os.path.join("..", "..", ".streamlit", "secrets.toml")
-secrets = toml.load(secrets_path)
-db_token = secrets["connections"]["databricks"]["access_token"]
-server_hostname = secrets["connections"]["databricks"]["server_hostname"]
-http_path = secrets["connections"]["databricks"]["http_path"]
-catalog_name = "hive_metastore" 
-schema_name = "default"
-
-connection_url = (
-    f"databricks://token:{db_token}@{server_hostname}?"
-    f"http_path={http_path}&catalog={catalog_name}&schema={schema_name}"
-)
-
-# 3. Create the engine
-engine = create_engine(connection_url)
-
-# 4. Pull your data into a Pandas DataFrame
-# Replace 'your_table_name' with the actual name of your Xbox dataset
-query = "SELECT * FROM xbox_analysis_data"
-final_df = pd.read_sql(query, engine)
-
-best_reducer, best_clusterer = train_n_optimize(final_df)
-
-with open('app/models/xbox_model.pkl', 'wb') as f:
-    dump({'reducer': best_reducer, 'clusterer': best_clusterer}, f) 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -189,6 +164,7 @@ def predict_single(item: RowInput):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
 @app.post("/batch_predict")
 def batch_predict(batch: BatchInput):
     try: 

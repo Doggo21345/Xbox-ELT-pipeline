@@ -27,19 +27,23 @@ jobs:
           pip install -r requirements.txt
           pip install pytest httpx  # These are just for testing, keep them here
       - name: Retrain Model from new Hive data
-        run: python scripts/train.py
+        run: |
+          # 1. Ensure Python can find the 'app' module for imports
+          export PYTHONPATH="${PYTHONPATH}:${GITHUB_WORKSPACE}"
+          
+          # 2. Point to the CORRECT path (app/scripts/train.py)
+          python -u "app/scripts/train.py"
         env:
-          # Map your GitHub Secrets to the Environment Variables your script uses
-          DB_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-          DB_SERVER_HOSTNAME: ${{ secrets.DB_HOSTNAME }}
+          DB_TOKEN: ${{ secrets.DB_TOKEN }}
+          DB_SERVER_HOSTNAME: ${{ secrets.DB_SERVER_HOSTNAME }}
           DB_HTTP_PATH: ${{ secrets.DB_HTTP_PATH }}
       - name: Unit Tests and Model tests 
-        run: pytest tests/
+        run: pytest app/tests/
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          password: ${{ secrets.DOCKERHUB_PAT }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
