@@ -4,9 +4,41 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from streamlit_option_menu import option_menu
 import plotly.express as px
-import pandas as pd
+import requests
+import json
+from pathlib import Path
 from databricks import sql
 from databricks.sdk.core import Config
+
+# ── Archetype Intelligence constants ─────────────────────────────────────────
+_PROFILES_PATH = Path(__file__).parent / "app" / "artifacts" / "archtype_profiles.json"
+_API_URL = st.secrets.get("api", {}).get("url", None) or "http://localhost:8000"
+_ARCHETYPE_COLORS = {"-1": "#6b7280", "3": "#107C10", "6": "#FFB900"}
+_ARCHETYPE_ICONS  = {"-1": "🔬",      "3": "🏆",      "6": "💎"}
+
+@st.cache_data
+def _load_profiles() -> dict:
+    with open(_PROFILES_PATH) as f:
+        return json.load(f)
+
+def _archetype_card(label, profile: dict, confidence: float | None = None):
+    key   = str(label)
+    color = _ARCHETYPE_COLORS.get(key, "#0078D4")
+    icon  = _ARCHETYPE_ICONS.get(key,  "🎮")
+    conf_html = (
+        f'<p style="color:#107C10;font-weight:600;margin:8px 0 0">Confidence: {confidence:.0%}</p>'
+        if confidence is not None else ""
+    )
+    st.markdown(
+        f"""<div style="border-left:5px solid {color}; padding:16px 20px;
+                background:#fafafa; border-radius:6px; margin-bottom:12px">
+            <h3 style="color:{color}; margin:0 0 8px">{icon} {profile.get('persona_name','Unknown')}</h3>
+            <p style="color:#444; margin:0 0 8px">{profile.get('summary','')}</p>
+            <p style="color:#107C10;font-weight:600;margin:0">
+                💡 Publishing Strategy: {profile.get('strategy','—')}
+            </p>{conf_html}</div>""",
+        unsafe_allow_html=True,
+    )
 
 # 1. Access secrets correctly
 # server_hostname should be your "adb-..." URL without https://
@@ -50,8 +82,8 @@ except Exception as e:
 
 selected = option_menu(
     menu_title=None,
-    options=["Overview", "Proof of Concept", "Genre Analysis", "Download Center ", "Publisher Intel","Watch the Series!"],
-    icons=["house", "bar-chart", "pie-chart", "archive", "app-indicator"],
+    options=["Overview", "Proof of Concept", "Genre Analysis", "Download Center ", "Publisher Intel", "Watch the Series!", "🔍 Archetype Intel", "📊 Model Health"],
+    icons=["house", "bar-chart", "pie-chart", "archive", "app-indicator", "play-btn", "search", "graph-up"],
     orientation="horizontal",
 )
 
@@ -902,6 +934,196 @@ elif(selected == "Overview"):
 
     # Final Navigation Suggestion
     st.info("💡 **Next Step:** Head over to the **Genre Analysis** tab. It contains the core methodology and the statistical 'Lift' formulas that power every other insight in this app.")
+
+# ═════════════════════════════════════════════════════════════════════════════
+# PAGE: ARCHETYPE INTEL
+# ═════════════════════════════════════════════════════════════════════════════
+elif selected == "🔍 Archetype Intel":
+    st.title("🔍 Game Archetype Lookup")
+    st.markdown(
+        "Enter a game's details below to find its Game Pass archetype and the "
+        "recommended publishing strategy from the ML model."
+    )
+    st.markdown("---")
+
+    profiles = _load_profiles()
+
+    with st.form("archetype_form"):
+        c1, c2, c3 = st.columns(3)
+
+        with c1:
+            st.subheader("Publisher Info")
+            publisher  = st.text_input("Publisher",  value="warner bros. games")
+            developer  = st.text_input("Developer",  value="avalanche software")
+            party_type = st.selectbox("Party Type",  ["1st Party", "2nd Party", "3rd Party"], index=2)
+            genre      = st.text_input("Genre",      value="Action-Adventure")
+
+        with c2:
+            st.subheader("Game Details")
+            current_price    = st.number_input("Retail Price ($)", min_value=0.0, max_value=120.0, value=59.99, step=0.01)
+            esrb             = st.selectbox("ESRB Rating", ["E", "E10+", "T", "M", "AO"], index=3)
+            esrb_descriptors = st.text_input("ESRB Descriptors", value="Violence, Language",
+                                             help="Comma-separated, e.g. Violence, Language")
+            asset_count      = st.number_input("Asset Count", min_value=1, max_value=200, value=11)
+
+        with c3:
+            st.subheader("Platform & GP Status")
+            is_day_one_gp = st.checkbox("Day One Game Pass title?", value=False)
+            xcloud_str    = st.selectbox("xCloud Support", ["Supported", "Not Supported"])
+            series_xs_str = st.selectbox("Series X|S", ["Optimized", "Compatible", "Not Available"])
+            system_str    = st.selectbox("Platform", ["Xbox One", "Xbox Series X|S", "PC"], index=1)
+
+        st.markdown("---")
+        c4, c5 = st.columns(2)
+
+        with c4:
+            st.subheader("Catalog Metrics")
+            days_since_release = st.number_input("Days Since Release",            min_value=0, max_value=10000, value=365)
+            days_since_gp_add  = st.number_input("Days Since Added to Game Pass", min_value=0, max_value=5000,  value=180)
+
+        with c5:
+            st.subheader("Engagement Signals")
+            rating_avg    = st.slider("Avg Rating (all-time)", 1.0, 5.0, 4.2, 0.1)
+            rating_count  = st.number_input("Total Ratings", min_value=0, value=50000, step=1000)
+            momentum      = st.number_input("Momentum Score", value=5.0, step=0.1,
+                                            help="Positive = growing, Negative = declining")
+            discovery_cap = st.number_input("Discovery Capture", value=0.30, format="%.3f")
+            quality_ret   = st.number_input("Quality Retention",  value=0.10, format="%.3f")
+
+        submitted = st.form_submit_button("🔍 Find Archetype", type="primary", use_container_width=True)
+
+    if submitted:
+        payload = {
+            "features": {
+                "publisher":                publisher.lower(),
+                "developer":                developer.lower(),
+                "Genre":                    genre,
+                "party_type":               party_type,
+                "current_price":            current_price,
+                "momentum":                 momentum,
+                "days_since_release":       int(days_since_release),
+                "rating_alltime_avg":       rating_avg,
+                "rating_alltime_count":     int(rating_count),
+                "quality_retention":        quality_ret,
+                "is_day_one_gp":            int(is_day_one_gp),
+                "days_since_gp_add":        int(days_since_gp_add),
+                "xCloud":                   1 if xcloud_str == "Supported" else 0,
+                "Series_X_S":               {"Not Available": 0, "Compatible": 1, "Optimized": 2}[series_xs_str],
+                "System":                   {"Xbox One": 0, "Xbox Series X|S": 1, "PC": 2}[system_str],
+                "discovery_capture":        discovery_cap,
+                "asset_count":              int(asset_count),
+                "ESRB_x":                   esrb,
+                "ESRB_Content_Descriptors": esrb_descriptors,
+            }
+        }
+        with st.spinner("Analysing game archetype..."):
+            try:
+                resp = requests.post(f"{_API_URL}/predict", json=payload, timeout=15)
+                resp.raise_for_status()
+                result = resp.json()
+                label, confidence = result["label"], result["confidence"]
+
+                st.success("Archetype identified!")
+                if label == -1:
+                    profile = {
+                        "persona_name": "Unique Disruptor",
+                        "summary":      "This game has a unique profile that doesn't match any standard archetype.",
+                        "strategy":     "High-risk, high-reward. Monitor community sentiment closely.",
+                    }
+                else:
+                    profile = profiles.get(str(label)) or result.get("profile") or {}
+                _archetype_card(label, profile, confidence)
+
+                # Show all other archetypes for context
+                st.markdown("---")
+                st.subheader("📚 All Archetypes for Reference")
+                for lbl, p in profiles.items():
+                    if str(lbl) != str(label):
+                        _archetype_card(lbl, p)
+
+            except requests.exceptions.ConnectionError:
+                st.error(
+                    f"Cannot reach the API at `{_API_URL}`. "
+                    "Add the live endpoint under **Settings → Secrets → api.url**."
+                )
+            except Exception as e:
+                st.error(f"Unexpected error: {e}")
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# PAGE: MODEL HEALTH (MLflow)
+# ═════════════════════════════════════════════════════════════════════════════
+elif selected == "📊 Model Health":
+    st.title("📊 Model Pipeline Health")
+    st.markdown(
+        "Track archetype model quality across every CI/CD retrain. "
+        "A higher silhouette score means the archetypes are more clearly defined and stable."
+    )
+    st.markdown("---")
+
+    try:
+        import mlflow
+
+        tracking_uri = st.secrets.get("mlflow", {}).get("tracking_uri", None) or "mlruns"
+        mlflow.set_tracking_uri(tracking_uri)
+
+        runs_df = mlflow.search_runs(
+            experiment_names=["xbox_archetype_clustering"],
+            order_by=["start_time DESC"],
+            max_results=50,
+        )
+
+        if runs_df.empty:
+            st.info("No training runs logged yet. Runs will appear after the next CI/CD retrain.")
+        else:
+            runs_df["start_time"] = pd.to_datetime(runs_df["start_time"])
+            latest   = runs_df.iloc[0]
+            prev_sil = runs_df.iloc[1].get("metrics.best_silhouette") if len(runs_df) > 1 else None
+
+            m1, m2, m3, m4 = st.columns(4)
+            m1.metric("Latest Silhouette",   f"{latest.get('metrics.best_silhouette', 0):.4f}")
+            m2.metric("Previous Silhouette", f"{prev_sil:.4f}" if prev_sil is not None else "—")
+            m3.metric(
+                "Rows Trained On",
+                f"{int(latest.get('params.n_rows_clean', 0)):,}" if "params.n_rows_clean" in latest else "—",
+            )
+            m4.metric("Total Retrains", len(runs_df))
+
+            st.markdown("---")
+
+            if "metrics.best_silhouette" in runs_df.columns:
+                chart_df = runs_df[["start_time", "metrics.best_silhouette"]].dropna().sort_values("start_time")
+                fig = px.line(
+                    chart_df, x="start_time", y="metrics.best_silhouette",
+                    markers=True,
+                    title="Best Silhouette Score Per Retrain",
+                    labels={"start_time": "Retrain Date", "metrics.best_silhouette": "Silhouette Score"},
+                    color_discrete_sequence=["#107C10"],
+                )
+                fig.add_hline(y=0.5, line_dash="dash", line_color="orange", annotation_text="Acceptable (0.5)")
+                fig.add_hline(y=0.7, line_dash="dash", line_color="green",  annotation_text="Target (0.7)")
+                fig.update_layout(yaxis_range=[0, 1], template="plotly_dark")
+                st.plotly_chart(fig, use_container_width=True)
+
+            st.subheader("Run History")
+            col_map = {
+                "start_time":              "Run Date",
+                "metrics.best_silhouette": "Best Silhouette",
+                "params.n_neighbors":      "n_neighbors",
+                "params.min_dist":         "min_dist",
+                "params.min_cluster_size": "min_cluster_size",
+                "params.min_samples":      "min_samples",
+                "params.n_rows_clean":     "Rows (clean)",
+            }
+            available = {k: v for k, v in col_map.items() if k in runs_df.columns}
+            st.dataframe(runs_df[list(available)].rename(columns=available).round(4), use_container_width=True)
+
+    except Exception as e:
+        st.warning(f"MLflow data unavailable: {e}")
+        st.info(
+            "Set `MLFLOW_TRACKING_URI` in your environment or add "
+            "`[mlflow]\\ntracking_uri = '...'` to `.streamlit/secrets.toml`."
+        )
             
         
     

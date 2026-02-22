@@ -108,11 +108,13 @@ def test_returns_fitted_preprocessor(raw_df):
 
 
 def test_preprocessor_can_transform_new_rows(raw_df):
-    # Critical for inference: the saved preprocessor must work on unseen rows
+    # Critical for inference: the saved preprocessor must work on unseen rows.
+    # At inference the API receives current_price as a float (Pydantic validates it),
+    # and model_utils.py fills None categoricals with 'unknown' before calling transform.
     _, preprocessor = preprocess(raw_df)
     new_row = raw_df.iloc[:1].copy()
-    new_row["current_price"] = "$59.99"
-    new_row["xCloud"] = None
+    new_row["current_price"] = 59.99      # float, as Pydantic always delivers
+    new_row["xCloud"] = "unknown"         # model_utils fills None → 'unknown'
     result = preprocessor.transform(new_row)
     assert result.shape[0] == 1
 

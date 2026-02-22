@@ -13,6 +13,8 @@ import umap
 import hdbscan
 from sqlalchemy import create_engine, text
 import toml
+import mlflow
+from datetime import datetime
 
 # Column definitions — mirrors EDA notebook
 _COLS_TO_DROP = [
@@ -80,11 +82,14 @@ def preprocess(df: pd.DataFrame):
     low_card_pipe = Pipeline([
         ('ohe', OneHotEncoder(handle_unknown='ignore', sparse_output=False))
     ])
-    # CountEncoder (frequency) handles high cardinality without needing a target
+    # TargetEncoder smooths each category level toward the mean of rating_alltime_avg
+    # (mirrors the EDA pipeline — richer signal for UMAP than frequency alone)
+    y = df['rating_alltime_avg'] if 'rating_alltime_avg' in df.columns else None
     high_card_pipe = Pipeline([
-        ('freq_enc', ce.CountEncoder(normalize=True)),
-        ('imputer',  KNNImputer(n_neighbors=5)),
-        ('scaler',   StandardScaler())
+        ('target_enc', ce.TargetEncoder(smoothing=10, handle_missing='value')),
+        ('freq_enc',   ce.CountEncoder(normalize=True)),
+        ('imputer',    KNNImputer(n_neighbors=5)),
+        ('scaler',     StandardScaler())
     ])
 
     preprocessor = ColumnTransformer([
@@ -93,7 +98,7 @@ def preprocess(df: pd.DataFrame):
         ('high_card', high_card_pipe, high_card_cols),
     ], remainder='drop')
 
-    X_processed  = preprocessor.fit_transform(df)
+    X_processed  = preprocessor.fit_transform(df, y=y)
     feature_names = preprocessor.get_feature_names_out()
     X_df = pd.DataFrame(X_processed, columns=feature_names)
 
@@ -181,6 +186,26 @@ def train_n_optimize(df: pd.DataFrame):
 
     print(f"\n✨ SUCCESS! Best Silhouette: {best['silhouette']:.4f}")
     print(f"💾 Saved to: {save_path}")
+
+    # --- MLflow logging (best-effort: won't break training if it fails) ---
+    try:
+        tracking_uri = os.getenv("MLFLOW_TRACKING_URI", "mlruns")
+        mlflow.set_tracking_uri(tracking_uri)
+        mlflow.set_experiment("xbox_archetype_clustering")
+        run_name = f"retrain_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        with mlflow.start_run(run_name=run_name):
+            mlflow.log_param("n_rows_raw",   len(df))
+            mlflow.log_param("n_rows_clean", len(X_final))
+            mlflow.log_param("n_features",   X_final.shape[1])
+            for step, r in enumerate(results):
+                mlflow.log_metric("silhouette", r['silhouette'], step=step)
+            mlflow.log_params(best['params'])
+            mlflow.log_metric("best_silhouette", best['silhouette'])
+            mlflow.log_artifact(save_path, artifact_path="model")
+        print("📊 MLflow run logged.", flush=True)
+    except Exception as mlflow_err:
+        print(f"⚠️  MLflow logging skipped: {mlflow_err}", flush=True)
+
     return best['model']
 
 
