@@ -4,7 +4,7 @@ from typing import List, Dict, Any, Optional
 import pandas as pd
 from contextlib import asynccontextmanager
 from .model_utils import load_models, load_profiles, predict
-from scripts.train import train_n_optimize
+from app.scripts.train import train_n_optimize
 from pickle import load, dump
 import toml
 import os 

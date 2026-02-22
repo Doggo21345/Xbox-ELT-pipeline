@@ -147,6 +147,7 @@ def train_n_optimize(df: pd.DataFrame):
         reducer = umap.UMAP(
             n_neighbors=params['n_neighbors'],
             min_dist=params['min_dist'],
+            n_components=10,
             random_state=42
         )
         clusterer = hdbscan.HDBSCAN(
