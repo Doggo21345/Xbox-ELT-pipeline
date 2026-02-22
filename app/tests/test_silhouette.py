@@ -9,7 +9,7 @@ class TestSilhouetteScore(unittest.TestCase):
         kmeans = KMeans(n_clusters=3)
         kmeans.fit(X)
         score = silhouette_score(X, kmeans.labels_)
-        self.assertGreater(score, 70)
+        self.assertGreater(score, 0.7)
 
 if __name__ == '__main__':
     unittest.main()
