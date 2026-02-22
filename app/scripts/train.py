@@ -119,7 +119,7 @@ def train_n_optimize(df: pd.DataFrame):
 
     # Paths
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    model_dir   = os.path.abspath(os.path.join(current_dir, "..", "app", "models"))
+    model_dir   = os.path.abspath(os.path.join(current_dir, "..", "models"))
     os.makedirs(model_dir, exist_ok=True)
     save_path = os.path.join(model_dir, "xbox_model.pkl")
 

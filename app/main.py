@@ -20,7 +20,8 @@ async def lifespan(app: FastAPI):
         with open('app/models/xbox_model.pkl', 'rb') as f: 
             artifacts = load(f)
             # Fixed typo: 'reducer'
-            state["umap"] = artifacts['reducer'] 
+            state['preprocessor'] = artifacts['preprocessor']
+            state["umap"] = artifacts['reducer']
             state['clusterer'] = artifacts['clusterer']
             print(f"🚀 Xbox Archetypes Loaded (Validation Score: {artifacts['score']:.2f})")
     except FileNotFoundError:
@@ -28,9 +29,11 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"❌ Unexpected error loading model: {e}")
 
-    yield 
+    yield
     state.clear()
     print("🧹 State cleared")
+
+app = FastAPI(lifespan=lifespan)
 
 class GameFeatures(BaseModel):
     publisher: str
