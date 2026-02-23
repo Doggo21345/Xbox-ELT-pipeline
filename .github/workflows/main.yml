@@ -55,6 +55,7 @@ jobs:
           context: .
           platforms: linux/arm64 
           push: true
+          file: ./Dockerfile 
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/xbox_cluster_analysis:latest
           cache-from: type=gha 
           cache-to: type=gha,mode=max
